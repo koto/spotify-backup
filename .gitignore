@@ -1,3 +1,6 @@
 *.txt
 *.json
 __pycache__/*
+venv/*
+*.sh
+!requirements.txt
