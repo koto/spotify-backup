@@ -7,7 +7,6 @@ import http.server
 import json
 import logging
 import re
-import sys
 import time
 import urllib.error
 import urllib.parse
@@ -16,6 +15,8 @@ import webbrowser
 
 logging.basicConfig(level=20, datefmt='%I:%M:%S', format='[%(asctime)s] %(message)s')
 
+CLIENT_ID='5c098bcc800e45d49e476265bc9b6934'
+SCOPE='playlist-read-private playlist-read-collaborative user-library-read'
 
 class SpotifyAPI:
 	
@@ -32,6 +33,7 @@ class SpotifyAPI:
 			url += ('&' if '?' in url else '?') + urllib.parse.urlencode(params)
 	
 		# Try the sending off the request a specified number of times before giving up.
+		last_exception = None
 		for _ in range(tries):
 			try:
 				req = urllib.request.Request(url)
@@ -43,7 +45,8 @@ class SpotifyAPI:
 				logging.info('Couldn\'t load URL: {} ({})'.format(url, err))
 				time.sleep(2)
 				logging.info('Trying again...')
-		sys.exit(1)
+				last_exception = err
+		raise last_exception
 	
 	# The Spotify API breaks long lists into multiple pages. This method automatically
 	# fetches all pages and joins them, returning in a single list of objects.
@@ -148,8 +151,7 @@ def main():
 	if args.token:
 		spotify = SpotifyAPI(args.token)
 	else:
-		spotify = SpotifyAPI.authorize(client_id='5c098bcc800e45d49e476265bc9b6934',
-		                               scope='playlist-read-private playlist-read-collaborative user-library-read')
+		spotify = SpotifyAPI.authorize(client_id=CLIENT_ID, scope=SCOPE)
 	
 	# Get the ID of the logged in user.
 	logging.info('Loading user info...')
@@ -169,7 +171,7 @@ def main():
 	# List all playlists and the tracks in each playlist
 	if 'playlists' in args.dump:
 		logging.info('Loading playlists...')
-		playlist_data = spotify.list('users/{user_id}/playlists'.format(user_id=me['id']), {'limit': 50})
+		playlist_data = spotify.list('users/{user_id}/playlists'.format(user_id=me['id']), {'limit': 50})	
 		logging.info(f'Found {len(playlist_data)} playlists')
 
 		# List all tracks in each playlist
