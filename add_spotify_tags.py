@@ -51,7 +51,7 @@ class Tagger(object):
             entry = self.cache[spotify_id]
         elif self.spotify:
             try:
-                entry = self.spotify.get(f'tracks/{spotify_id}aa', tries=2)
+                entry = self.spotify.get(f'tracks/{spotify_id}', tries=2)
             except Exception as err:
                 logging.error(err)
 
